@@ -17,6 +17,7 @@ namespace MiniPlanetDefense
         {
             Radius = transform.localScale.x / 2f;
             Position = transform.position;
+            physicsHelper = FindObjectOfType<PhysicsHelper>();
         }
 
         void OnEnable()
