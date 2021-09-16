@@ -5014,8 +5014,9 @@ MonoBehaviour:
   mainRenderer: {fileID: 3149763359163145211}
   trailRenderer: {fileID: 3149763360133625605}
   deathParticleSystem: {fileID: 3149763359195086988}
-  rotatingSpeed: 5
+  rotatingSpeed: 150
   currentAngle: 0
+  manualMovementOnPlanet: 0
 --- !u!58 &3149763359840970696
 CircleCollider2D:
   m_ObjectHideFlags: 0

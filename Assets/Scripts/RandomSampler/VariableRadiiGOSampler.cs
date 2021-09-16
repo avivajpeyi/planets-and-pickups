@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MiniPlanetDefense;
 using UnityEngine;
+using Zenject;
 
 public class VariableRadiiGOSampler : MonoBehaviour
 {
@@ -16,9 +18,14 @@ public class VariableRadiiGOSampler : MonoBehaviour
 
     private List<VariableRadiiDiskSampler.Point> points;
 
+    [Inject] private GameArea gameArea;
+    [Inject] private Player player;
+    [Inject] private FollowTransform followCam;
     [SerializeField] private GameObject goPrefab;
     private List<GameObject> gos;
 
+    private Vector3 center;
+    
     void OnValidate()
     {
         
@@ -28,6 +35,7 @@ public class VariableRadiiGOSampler : MonoBehaviour
     void Start()
     {
         gos = new List<GameObject>();
+        center = new Vector3(regionSize / 2, regionSize / 2, 0.5f);
         Reset();
     }
 
@@ -43,13 +51,25 @@ public class VariableRadiiGOSampler : MonoBehaviour
             }
             gos.Clear();
         }
-        foreach (var pt in points)
+        for (int i = 0; i < points.Count; i++)
         {
+            var pt = points[i];
             GameObject newG = Instantiate(goPrefab);
+            Planet p = newG.GetComponent<Planet>();
             newG.transform.position = new Vector3(pt.x, pt.y, 0);
-            newG.transform.localScale = Vector3.one * pt.radius;
+            float diameter = pt.radius * 2.0f;
+            newG.transform.localScale = Vector3.one * diameter * 0.5f; // making the planets much smaller than the poisson disk
+            p.InitPlanet(newG.transform.position, newG.transform.localScale.x / 2f);
             gos.Add(newG);
+            
         }
+        
+        
+        
+        gameArea.InitGameArea(center);
+        player.Reset( new Vector3(center.x, center.y, player.transform.position.z));
+        followCam.transform.position = new Vector3(center.x, center.y, followCam.transform.position.z);
+        
     }
 
     private void Update()
@@ -66,7 +86,7 @@ public class VariableRadiiGOSampler : MonoBehaviour
     void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCube(new Vector3(regionSize/2,regionSize/2,0.5f),new Vector3(regionSize,regionSize,1f));
+        Gizmos.DrawWireCube(center,new Vector3(regionSize,regionSize,1f));
         if (points != null)
         {
             foreach (VariableRadiiDiskSampler.Point point in points)
@@ -82,10 +102,7 @@ public class VariableRadiiGOSampler : MonoBehaviour
         }
         
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(
-            new Vector3(regionSize/2,regionSize/2,0.5f),
-            regionSize/2
-        );
+        Gizmos.DrawWireSphere(center, regionSize/2);
         
         
     }

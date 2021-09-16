@@ -12,7 +12,7 @@ namespace MiniPlanetDefense
     /// </summary>
     public class Player : MonoBehaviour
     {
-        [SerializeField] float moveSpeedOnPlanet;
+        [SerializeField] float moveSpeedOnPlanet = 650.0f;
         [SerializeField] float freeMovementSpeed = 10;
         [SerializeField] float jumpImpulse = 5;
         [SerializeField] float maxSpeed = 10f;
@@ -24,7 +24,7 @@ namespace MiniPlanetDefense
         [SerializeField] ParticleSystem deathParticleSystem;
         
         [Inject] PhysicsHelper physicsHelper;
-        [Inject] Constants constants;
+        [Inject] GameArea gameArea;
         [Inject] IngameUI ingameUI;
         [Inject] SoundManager soundManager;
 
@@ -43,8 +43,7 @@ namespace MiniPlanetDefense
         Planet currentPlanet;
 
         private bool isRotatingClockwise = false;
-
-        public float rotatingSpeed = 150.0f;
+        
         public float currentAngle;
 
 
@@ -52,16 +51,27 @@ namespace MiniPlanetDefense
         bool hasMovedHorizontallyLastFrame;
         int horizontalMovementDirectionMultiplier = 1;
         Vector2 freeMoveDirection;
+
+        private Vector2 gravitationalForce;
         
         void Awake()
         {
-            rigidbody = GetComponent<Rigidbody2D>();
-            physicsHelper = FindObjectOfType<PhysicsHelper>();
-            soundManager = FindObjectOfType<SoundManager>();
-            radius = transform.localScale.x / 2f;
+            Reset(transform.position);
+        }
 
+
+        public void Reset(Vector3 pos)
+        {
+            rigidbody = GetComponent<Rigidbody2D>();
+            radius = transform.localScale.x / 2f;
+            
             isColoredOnPlanet = false;
             RefreshColor();
+
+            
+            transform.position = pos;
+            
+            trailRenderer.Clear();
         }
 
         void GetDirectionForOrbit()
@@ -105,6 +115,14 @@ namespace MiniPlanetDefense
             
             }
 
+            Gizmos.color = new Color(0, 0, 255, 0.2f);
+            Gizmos.DrawSphere(transform.position, radius);
+
+            if (gravitationalForce != null)
+            {
+                Gizmos.color = Color.white;
+                Gizmos.DrawRay(transform.position, gravitationalForce);
+            }
 
         }
 
@@ -114,7 +132,9 @@ namespace MiniPlanetDefense
             // Gravitational attraction 
             if (currentPlanet == null)
             {
-                rigidbody.AddForce(physicsHelper.GetGravityAtPosition(transform.position, radius));
+                gravitationalForce =
+                    physicsHelper.GetGravityAtPosition(transform.position, radius);
+                rigidbody.AddForce(gravitationalForce);
             }
             else
             {
@@ -161,10 +181,11 @@ namespace MiniPlanetDefense
             
             if (currentPlanet == null) // if no current planet
             {
-                RestrictPlayerPositionInField();
+//                RestrictPlayerPositionInField();
             }
             else
             {
+                gravitationalForce = Vector2.zero;
                 if (manualMovementOnPlanet)
                 {
                     freeMoveDirection.x = 0;
@@ -178,6 +199,7 @@ namespace MiniPlanetDefense
                 
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
+                    Debug.Log("Jump!");
                     var jumpForceDirection = -CalculateDeltaToPlanetCenter(currentPlanet).normalized;
                     rigidbody.velocity = jumpForceDirection * jumpImpulse;
                     currentPlanet = null;
@@ -216,8 +238,8 @@ namespace MiniPlanetDefense
         
         void RestrictPlayerPositionInField()
         {
-            var distanceFromCenterSqr = rigidbody.position.sqrMagnitude;
-            var maxDistanceFromCenter = constants.playfieldRadius - radius;
+            var distanceFromCenterSqr = (gameArea.Center - transform.position).sqrMagnitude;
+            var maxDistanceFromCenter = gameArea.Radius - radius;
             if (distanceFromCenterSqr > maxDistanceFromCenter * maxDistanceFromCenter)
             {
                 rigidbody.position *= maxDistanceFromCenter / Mathf.Sqrt(distanceFromCenterSqr);
@@ -289,9 +311,10 @@ namespace MiniPlanetDefense
         void OrbitPlanet()
         {
             float clockwiseMultiplier = (isRotatingClockwise) ? 1f : -1f;
-        
+
+            float angularVelocity = moveSpeedOnPlanet / currentPlanet.Radius;
             //Move object as orbit
-            currentAngle += rotatingSpeed * Time.deltaTime * clockwiseMultiplier;
+            currentAngle +=  angularVelocity * Time.deltaTime * clockwiseMultiplier;
             currentAngle = currentAngle % 360.0f;
             if(currentAngle < 0)
                 currentAngle += 360.0f;
@@ -333,11 +356,11 @@ namespace MiniPlanetDefense
             {
                 theta_deg += 360.0f;
             } 
-            
-            Debug.Log("Pos: " + diff + " Deg: " + theta_deg);
 
             return theta_deg;
 
         }
+        
+        
     }
 }
