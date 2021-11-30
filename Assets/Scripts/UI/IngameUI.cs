@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace MiniPlanetDefense
 {
@@ -10,27 +11,38 @@ namespace MiniPlanetDefense
     public class IngameUI : MonoBehaviour
     {
         [SerializeField] Text textScore;
+        [SerializeField] Text textTime;
         [SerializeField] GameObject introScreen;
         [SerializeField] GameObject restartScreen;
         [SerializeField] float restartScreenDelay = 1f;
         
         int score;
+        int time;
 
         void Awake()
         {
             introScreen.SetActive(true);
             restartScreen.SetActive(false);
+            UpdateScoreDisplay();
         }
 
-        public void SetScore(int value)
+        public void UpdateScoreDisplay()
         {
-            if (score == value)
+            textScore.text = ScoreManager.GetScore().ToString();
+        }
+
+        
+        public void SetTime(int value)
+        {
+            if (time == value)
                 return;
 
-            score = value;
-            textScore.text = score.ToString();
+            time = value;
+            textTime.text = time.ToString("00");
         }
 
+        
+        
         public void ShowRestartScreen()
         {
             StartCoroutine(ShowRestartScreenCoroutine());
@@ -41,6 +53,13 @@ namespace MiniPlanetDefense
             yield return new WaitForSeconds(restartScreenDelay);
             
             restartScreen.gameObject.SetActive(true);
+        }
+
+
+        public void GoToMenuScene()
+        {
+            ScoreManager.SaveScore();
+            SceneManager.LoadScene("StartMenu");
         }
     }
 }

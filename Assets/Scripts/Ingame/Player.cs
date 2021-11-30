@@ -1,6 +1,8 @@
 using System;
+using Cinemachine;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Zenject;
 using Random = UnityEngine.Random;
 using Zchfvy.Plus;
@@ -36,9 +38,10 @@ namespace MiniPlanetDefense
         float radius;
 
 
+        private Timer timer;
+
         bool isColoredOnPlanet;
 
-        int score;
 
         bool destroyed;
 
@@ -57,15 +60,25 @@ namespace MiniPlanetDefense
 
         private Vector2 gravitationalForce;
 
+
+
         void Awake()
         {
+            Application.targetFrameRate = -1;
+            timer = gameObject.AddComponent<Timer>();
             Reset(transform.position);
             micInput = FindObjectOfType<MicInput>();
+            CinemachineVirtualCamera cvm = FindObjectOfType<CinemachineVirtualCamera>();
+            if (cvm != null)
+                cvm.Follow = transform;
         }
 
 
         public void Reset(Vector3 pos)
         {
+            
+            timer.StartTimer(60);
+            
             rigidbody = GetComponent<Rigidbody2D>();
             radius = transform.localScale.x / 2f;
 
@@ -206,6 +219,13 @@ namespace MiniPlanetDefense
             }
 
             SetColoredOnPlanet(currentPlanet != null);
+            
+            ingameUI.SetTime(timer.timeInSeconds());
+            if (timer.timeUp)
+            {
+                EndRound();
+                
+            }
         }
 
 
@@ -262,8 +282,8 @@ namespace MiniPlanetDefense
 
                 soundManager.PlaySound(Sound.Pickup);
 
-                score++;
-                ingameUI.SetScore(score);
+                ScoreManager.IncreaseScore();
+                ingameUI.UpdateScoreDisplay();
             }
             else if (otherGameObject.CompareTag(Tag.Enemy))
             {
@@ -279,12 +299,19 @@ namespace MiniPlanetDefense
             deathParticleSystem.transform.parent = null;
             deathParticleSystem.Play();
 
-            gameObject.SetActive(false);
-            destroyed = true;
-
-            ingameUI.ShowRestartScreen();
-
+ 
             soundManager.PlaySound(Sound.Death);
+            
+            EndRound();
+            gameObject.SetActive(false);
+
+        }
+
+        void EndRound()
+        {
+            ingameUI.ShowRestartScreen();
+            ScoreManager.SaveScore();
+            destroyed = true;
         }
 
 
@@ -344,16 +371,10 @@ namespace MiniPlanetDefense
             if (Input.GetKeyDown(KeyCode.Space))
                 return true;
 
-            if (MicInput.loudnessInDb < 0.5 * MicInput.medianLoudnessInDb)
+            if (MicInput.isTriggered())
             {
-                Debug.Log(
-                    "Mic loudness: median " +
-                    MicInput.medianLoudnessInDb.ToString("####") +
-                    " dB, curr " + MicInput.loudnessInDb.ToString("####")
-                );
                 return true;
             }
-
 
             return false;
         }
