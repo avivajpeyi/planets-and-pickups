@@ -20,8 +20,8 @@ jobs:
           - 2020.3.22f1
         targetPlatform:
           # - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
-          # - StandaloneWindows64 # Build a Windows 64-bit standalone.
-          # - StandaloneLinux64 # Build a Linux 64-bit standalone.
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          - StandaloneLinux64 # Build a Linux 64-bit standalone.
           - WebGL # Build a HTML playable in browser
     steps:
       # Checkout
@@ -64,13 +64,13 @@ jobs:
       matrix:
         channel:
           # - osx
-          # - linux
-          # - windows
+          - linux
+          - windows
           - html5
         package:
           # - StandaloneOSX
-          # - StandaloneLinux64
-          # - StandaloneWindows64
+          - StandaloneLinux64
+          - StandaloneWindows64
           - WebGL
     steps:
       - name: Download builds ⤵️
