@@ -1,11 +1,17 @@
+
 using System;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Networking;
 
-public class Highscores : MonoBehaviour
-{
+
+using UnityEngine;
+using System.Collections;
+
+public class Highscores : MonoBehaviour {
+    
+
     // http://dreamlo.com/lb/Q8ED0bIu8UiTz5U7BuV9ywiThpS36I1UmxKQE0K2BCDA
     const string privateCode = "Q8ED0bIu8UiTz5U7BuV9ywiThpS36I1UmxKQE0K2BCDA";
     const string publicCode = "61a358d88f40bb127889a895";
@@ -22,6 +28,7 @@ public class Highscores : MonoBehaviour
         AddNewHighscore("Sam", 20);
         AddNewHighscore("Bob Ross", 30);
     }
+
 
     void Awake()
     {
@@ -57,9 +64,11 @@ public class Highscores : MonoBehaviour
             else
             {
                 Debug.Log("Error uploading: " + www.error);
+
             }
         }
     }
+
 
     public void DownloadHighscores()
     {
@@ -115,4 +124,5 @@ public struct Highscore
         username = _username;
         score = _score;
     }
+
 }
