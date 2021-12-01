@@ -15,7 +15,7 @@ public class Highscores : MonoBehaviour {
     // http://dreamlo.com/lb/Q8ED0bIu8UiTz5U7BuV9ywiThpS36I1UmxKQE0K2BCDA
     const string privateCode = "Q8ED0bIu8UiTz5U7BuV9ywiThpS36I1UmxKQE0K2BCDA";
     const string publicCode = "61a358d88f40bb127889a895";
-    const string webURL = "http://dreamlo.com/lb/";
+    const string webURL = "https://dreamlo.com/lb/";
 
     DisplayHighscores highscoreDisplay;
     public Highscore[] highscoresList;
